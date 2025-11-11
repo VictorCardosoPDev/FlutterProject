@@ -21,19 +21,158 @@ void main() {
 
 // ========================= MODELO DE DADOS (MUTÁVEL PARA EDIÇÃO) =========================
 class Gado {
+  // ID único do gado (gerado automaticamente se não fornecido)
+  String id;
   String nome;
   String idade;
   String peso;
   String vacinas; // String contendo vacinas separadas por vírgula
   String sexo;
 
+  // NOVOS CAMPOS PARA ATENDER A ESTRUTURA SOLICITADA
+  // foto: caminho/URI da foto ou base64 (opcional)
+  String? foto;
+
+  // Referências (IDs) para proprietário, propriedade e lote
+  String? ownerId;
+  String? propriedadeId;
+  String? loteId;
+
   Gado({
+    String? id,
     required this.nome,
     required this.idade,
     required this.peso,
     required this.vacinas,
     required this.sexo,
-  });
+    this.foto,
+    this.ownerId,
+    this.propriedadeId,
+    this.loteId,
+  }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
+}
+
+// ========================= NOVO MODELO: PROPRIETÁRIOS/POLÍCIAS/LOTES =========================
+class Proprietario {
+  String id;
+  String nome;
+  List<Propriedade> propriedades;
+
+  Proprietario({required this.id, required this.nome, List<Propriedade>? propriedades})
+      : propriedades = propriedades ?? [];
+}
+
+class Propriedade {
+  String id;
+  String nome;
+  List<Lote> lotes;
+  // IDs dos gados vinculados a essa propriedade
+  List<String> gadoIds;
+
+  Propriedade({
+    required this.id,
+    required this.nome,
+    List<Lote>? lotes,
+    List<String>? gadoIds,
+  })  : lotes = lotes ?? [],
+        gadoIds = gadoIds ?? [];
+}
+
+class Lote {
+  String id;
+  String nome;
+  String? descricao;
+
+  Lote({required this.id, required this.nome, this.descricao});
+}
+
+// Lista global de proprietários (simulação de banco)
+List<Proprietario> proprietarios = [];
+
+// ----------------- Helpers reutilizáveis para criar entidades -----------------
+// Retornam o id criado ou null se cancelado.
+Future<String?> showCreateProprietarioDialog(BuildContext context) async {
+  final TextEditingController nameCtrl = TextEditingController();
+  final result = await showDialog<String?>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Novo Proprietário'),
+      content: TextField(
+        controller: nameCtrl,
+        decoration: const InputDecoration(labelText: 'Nome do proprietário'),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, nameCtrl.text.trim()), child: const Text('Criar')),
+      ],
+    ),
+  );
+
+  if (result != null && result.isNotEmpty) {
+    final novo = Proprietario(id: DateTime.now().microsecondsSinceEpoch.toString(), nome: result);
+    proprietarios.add(novo);
+    return novo.id;
+  }
+  return null;
+}
+
+Future<String?> showCreatePropriedadeDialog(BuildContext context, String ownerId) async {
+  final TextEditingController nameCtrl = TextEditingController();
+  final result = await showDialog<String?>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Nova Propriedade'),
+      content: TextField(
+        controller: nameCtrl,
+        decoration: const InputDecoration(labelText: 'Nome da propriedade'),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, nameCtrl.text.trim()), child: const Text('Criar')),
+      ],
+    ),
+  );
+
+  if (result != null && result.isNotEmpty) {
+    final prop = Propriedade(id: DateTime.now().microsecondsSinceEpoch.toString(), nome: result);
+    final ownerIndex = proprietarios.indexWhere((p) => p.id == ownerId);
+    if (ownerIndex != -1) {
+      proprietarios[ownerIndex].propriedades.add(prop);
+      return prop.id;
+    }
+  }
+  return null;
+}
+
+Future<String?> showCreateLoteDialog(BuildContext context, String ownerId, String propriedadeId) async {
+  final TextEditingController nameCtrl = TextEditingController();
+  final result = await showDialog<String?>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Novo Lote'),
+      content: TextField(
+        controller: nameCtrl,
+        decoration: const InputDecoration(labelText: 'Nome do lote'),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, nameCtrl.text.trim()), child: const Text('Criar')),
+      ],
+    ),
+  );
+
+  if (result != null && result.isNotEmpty) {
+    final lote = Lote(id: DateTime.now().microsecondsSinceEpoch.toString(), nome: result);
+    final ownerIndex = proprietarios.indexWhere((p) => p.id == ownerId);
+    if (ownerIndex != -1) {
+      final propIndex = proprietarios[ownerIndex].propriedades.indexWhere((pr) => pr.id == propriedadeId);
+      if (propIndex != -1) {
+        proprietarios[ownerIndex].propriedades[propIndex].lotes.add(lote);
+        return lote.id;
+      }
+    }
+  }
+  return null;
 }
 
 class GerenciamentoGadoApp extends StatelessWidget {
@@ -257,10 +396,16 @@ class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _idadeController = TextEditingController();
   final TextEditingController _pesoController = TextEditingController();
+  // Foto (URI/path) controller
+  final TextEditingController _fotoController = TextEditingController();
 
   String? _sexoSelecionado;
   // NOVO: Armazena as vacinas selecionadas
   List<String> _vacinasSelecionadas = [];
+  // Seleção/IDs para proprietário, propriedade e lote
+  String? _ownerId;
+  String? _propriedadeId;
+  String? _loteId;
 
   // NOVO MÉTODO: Abre um diálogo para seleção múltipla de vacinas
   Future<void> _selecionarVacinas() async {
@@ -280,6 +425,9 @@ class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
     }
   }
 
+  // Cria um novo proprietário via diálogo simples
+
+
   void _salvarCadastro() {
     if (_formKey.currentState!.validate()) {
       final novoGado = Gado(
@@ -291,9 +439,24 @@ class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
             ? 'N/A'
             : _vacinasSelecionadas.join(', '), // Junta as vacinas com vírgula
         sexo: _sexoSelecionado ?? 'Não informado',
+        foto: _fotoController.text.isEmpty ? null : _fotoController.text,
+        ownerId: _ownerId,
+        propriedadeId: _propriedadeId,
+        loteId: _loteId,
       );
 
       gadosCadastrados.add(novoGado);
+
+      // Se vinculou a uma propriedade, registre o id do gado na propriedade
+      if (_ownerId != null && _propriedadeId != null) {
+        final ownerIndex = proprietarios.indexWhere((p) => p.id == _ownerId);
+        if (ownerIndex != -1) {
+          final propIndex = proprietarios[ownerIndex].propriedades.indexWhere((pr) => pr.id == _propriedadeId);
+          if (propIndex != -1) {
+            proprietarios[ownerIndex].propriedades[propIndex].gadoIds.add(novoGado.id);
+          }
+        }
+      }
 
       // Limpa os campos para novo cadastro
       _nomeController.clear();
@@ -302,6 +465,10 @@ class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
       setState(() {
         _sexoSelecionado = null;
         _vacinasSelecionadas = []; // Limpa a seleção
+        _fotoController.clear();
+        _ownerId = null;
+        _propriedadeId = null;
+        _loteId = null;
       });
 
       showDialog(
@@ -362,7 +529,138 @@ class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
                     value!.isEmpty ? 'Informe o peso' : null,
               ),
               const SizedBox(height: 15),
-              
+              // Foto (URI ou URL)
+              TextFormField(
+                controller: _fotoController,
+                decoration: const InputDecoration(
+                  labelText: 'Foto (URI ou URL)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // Proprietário / Propriedade / Lote (edição)
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Proprietário', border: OutlineInputBorder()),
+                      value: _ownerId,
+                      items: proprietarios
+                          .map((p) => DropdownMenuItem(value: p.id, child: Text(p.nome)))
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _ownerId = val;
+                          _propriedadeId = null;
+                          _loteId = null;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () async {
+                      final id = await showCreateProprietarioDialog(context);
+                      if (id != null) {
+                        setState(() {
+                          _ownerId = id;
+                          _propriedadeId = null;
+                          _loteId = null;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Novo proprietário',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Propriedade', border: OutlineInputBorder()),
+                      value: _propriedadeId,
+                      items: _ownerId == null
+                          ? []
+                          : proprietarios
+                              .firstWhere((p) => p.id == _ownerId)
+                              .propriedades
+                              .map((pr) => DropdownMenuItem(value: pr.id, child: Text(pr.nome)))
+                              .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _propriedadeId = val;
+                          _loteId = null;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () async {
+                      if (_ownerId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione um proprietário primeiro')));
+                        return;
+                      }
+                      final id = await showCreatePropriedadeDialog(context, _ownerId!);
+                      if (id != null) {
+                        setState(() {
+                          _propriedadeId = id;
+                          _loteId = null;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.add_home_outlined),
+                    tooltip: 'Nova propriedade',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Lote', border: OutlineInputBorder()),
+                      value: _loteId,
+                      items: (_ownerId == null || _propriedadeId == null)
+                          ? []
+                          : proprietarios
+                              .firstWhere((p) => p.id == _ownerId)
+                              .propriedades
+                              .firstWhere((pr) => pr.id == _propriedadeId)
+                              .lotes
+                              .map((l) => DropdownMenuItem(value: l.id, child: Text(l.nome)))
+                              .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _loteId = val;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () async {
+                      if (_propriedadeId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione uma propriedade primeiro')));
+                        return;
+                      }
+                      final id = await showCreateLoteDialog(context, _ownerId!, _propriedadeId!);
+                      if (id != null) {
+                        setState(() {
+                          _loteId = id;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.storage),
+                    tooltip: 'Novo lote',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+
               // NOVO CAMPO: Seleção Múltipla de Vacinas
               TextFormField(
                 decoration: InputDecoration(
@@ -513,6 +811,27 @@ class _ListaGadoPageState extends State<ListaGadoPage> {
     });
   }
 
+  // Busca
+  late TextEditingController _searchController;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _goToDetalhe(BuildContext context, Gado gado) async {
     // A lista precisa ser atualizada ao voltar da DetalheGadoPage (após edição/exclusão)
     await Navigator.push(
@@ -543,27 +862,83 @@ class _ListaGadoPageState extends State<ListaGadoPage> {
       );
     }
 
+    // Filtra a lista com base na query
+    final query = _searchQuery.toLowerCase();
+    final filtered = gadosCadastrados.where((gado) {
+      if (query.isEmpty) return true;
+      final ownerName = gado.ownerId == null
+          ? ''
+          : (proprietarios.firstWhere((p) => p.id == gado.ownerId, orElse: () => Proprietario(id: '', nome: '')).nome);
+      final propriedadeName = (gado.ownerId == null || gado.propriedadeId == null)
+          ? ''
+          : (proprietarios
+              .firstWhere((p) => p.id == gado.ownerId, orElse: () => Proprietario(id: '', nome: ''))
+              .propriedades
+              .firstWhere((pr) => pr.id == gado.propriedadeId, orElse: () => Propriedade(id: '', nome: ''))
+              .nome);
+      final loteName = (gado.ownerId == null || gado.propriedadeId == null || gado.loteId == null)
+          ? ''
+          : (proprietarios
+              .firstWhere((p) => p.id == gado.ownerId, orElse: () => Proprietario(id: '', nome: ''))
+              .propriedades
+              .firstWhere((pr) => pr.id == gado.propriedadeId, orElse: () => Propriedade(id: '', nome: ''))
+              .lotes
+              .firstWhere((l) => l.id == gado.loteId, orElse: () => Lote(id: '', nome: '') )
+              .nome);
+
+      final combined = '${gado.nome} ${gado.id} ${gado.sexo} ${gado.vacinas} ${ownerName} ${propriedadeName} ${loteName}'.toLowerCase();
+      return combined.contains(query);
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(title: Text('Gado Cadastrado (${gadosCadastrados.length})')),
-      body: ListView.builder(
-        itemCount: gadosCadastrados.length,
-        itemBuilder: (context, index) {
-          final gado = gadosCadastrados[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: ListTile(
-              leading: Icon(
-                gado.sexo == 'Macho' ? Icons.male : Icons.female,
-                color: gado.sexo == 'Macho' ? Colors.blue : Colors.pink,
-                size: 40,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: 'Buscar por nome, id, proprietário, propriedade, lote, vacinas...',
+                suffixIcon: _searchQuery.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              title: Text(gado.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('Idade: ${gado.idade} meses | Peso: ${gado.peso} kg'),
-              trailing: Text(gado.sexo),
-              onTap: () => _goToDetalhe(context, gado),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: filtered.isEmpty
+                ? Center(
+                    child: Text('Nenhum resultado para "$_searchQuery"', style: const TextStyle(color: Colors.grey)))
+                : ListView.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final gado = filtered[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        child: ListTile(
+                          leading: Icon(
+                            gado.sexo == 'Macho' ? Icons.male : Icons.female,
+                            color: gado.sexo == 'Macho' ? Colors.blue : Colors.pink,
+                            size: 40,
+                          ),
+                          title: Text(gado.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text('Idade: ${gado.idade} meses | Peso: ${gado.peso} kg'),
+                          trailing: Text(gado.sexo),
+                          onTap: () => _goToDetalhe(context, gado),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -586,11 +961,16 @@ class _EditarGadoPageState extends State<EditarGadoPage> {
   late TextEditingController _nomeController;
   late TextEditingController _idadeController;
   late TextEditingController _pesoController;
+  late TextEditingController _fotoController;
   // REMOVIDO: late TextEditingController _vacinasController;
 
   String? _sexoSelecionado;
   // NOVO: Lista mutável para as vacinas na edição
   late List<String> _vacinasSelecionadas; 
+  // Seleção/IDs para proprietário, propriedade e lote na edição
+  String? _ownerId;
+  String? _propriedadeId;
+  String? _loteId;
 
   @override
   void initState() {
@@ -598,12 +978,18 @@ class _EditarGadoPageState extends State<EditarGadoPage> {
     _nomeController = TextEditingController(text: widget.gado.nome);
     _idadeController = TextEditingController(text: widget.gado.idade);
     _pesoController = TextEditingController(text: widget.gado.peso);
+    _fotoController = TextEditingController(text: widget.gado.foto ?? '');
     _sexoSelecionado = widget.gado.sexo == 'Não informado' ? null : widget.gado.sexo;
     
     // NOVO: Inicializa a lista de vacinas, separando a string por vírgulas
     _vacinasSelecionadas = widget.gado.vacinas == 'N/A'
         ? []
         : widget.gado.vacinas.split(', ').toList();
+
+    // inicializa seleção de owner/propriedade/lote
+    _ownerId = widget.gado.ownerId;
+    _propriedadeId = widget.gado.propriedadeId;
+    _loteId = widget.gado.loteId;
   }
 
   @override
@@ -611,6 +997,7 @@ class _EditarGadoPageState extends State<EditarGadoPage> {
     _nomeController.dispose();
     _idadeController.dispose();
     _pesoController.dispose();
+    _fotoController.dispose();
     super.dispose();
   }
   
@@ -631,10 +1018,16 @@ class _EditarGadoPageState extends State<EditarGadoPage> {
     }
   }
 
+  // ---- duplicados dos helpers de criação usados no cadastro ----
+  
+
 
   void _salvarEdicao() {
     if (_formKey.currentState!.validate()) {
       // 1. Atualiza o objeto Gado original
+      final oldOwnerId = widget.gado.ownerId;
+      final oldPropId = widget.gado.propriedadeId;
+
       widget.gado.nome = _nomeController.text;
       widget.gado.idade = _idadeController.text;
       widget.gado.peso = _pesoController.text;
@@ -643,6 +1036,31 @@ class _EditarGadoPageState extends State<EditarGadoPage> {
           ? 'N/A'
           : _vacinasSelecionadas.join(', ');
       widget.gado.sexo = _sexoSelecionado ?? 'Não informado';
+      widget.gado.foto = _fotoController.text.isEmpty ? null : _fotoController.text;
+      widget.gado.ownerId = _ownerId;
+      widget.gado.propriedadeId = _propriedadeId;
+      widget.gado.loteId = _loteId;
+
+      // Atualiza referências em propriedades: remove de antiga propriedade e adiciona na nova
+      if (oldPropId != null) {
+        final oi = proprietarios.indexWhere((p) => p.id == oldOwnerId);
+        if (oi != -1) {
+          final pi = proprietarios[oi].propriedades.indexWhere((pr) => pr.id == oldPropId);
+          if (pi != -1) {
+            proprietarios[oi].propriedades[pi].gadoIds.removeWhere((id) => id == widget.gado.id);
+          }
+        }
+      }
+      if (_propriedadeId != null && _ownerId != null) {
+        final oi2 = proprietarios.indexWhere((p) => p.id == _ownerId);
+        if (oi2 != -1) {
+          final pi2 = proprietarios[oi2].propriedades.indexWhere((pr) => pr.id == _propriedadeId);
+          if (pi2 != -1) {
+            final exists = proprietarios[oi2].propriedades[pi2].gadoIds.contains(widget.gado.id);
+            if (!exists) proprietarios[oi2].propriedades[pi2].gadoIds.add(widget.gado.id);
+          }
+        }
+      }
 
       // 2. Chama o callback para notificar a tela de detalhes
       widget.onGadoEdited();
@@ -797,7 +1215,14 @@ class _DetalheGadoPageState extends State<DetalheGadoPage> {
           ElevatedButton(
             onPressed: () {
               // 1. Remove da lista global
+              // remove da lista principal
               gadosCadastrados.remove(widget.gado);
+              // remove referências em propriedades (caso exista)
+              for (var owner in proprietarios) {
+                for (var prop in owner.propriedades) {
+                  prop.gadoIds.removeWhere((id) => id == widget.gado.id);
+                }
+              }
 
               // 2. Notifica a ListaGadoPage e volta para ela
               widget.onGadoChanged();
@@ -905,6 +1330,43 @@ class _DetalheGadoPageState extends State<DetalheGadoPage> {
                   Icons.local_hospital,
                   Colors.red,
                 ),
+                const SizedBox(height: 12),
+                // Foto (se for URL, exibe imagem)
+                if (widget.gado.foto != null && widget.gado.foto!.startsWith('http'))
+                  Center(
+                    child: Image.network(widget.gado.foto!, height: 180, fit: BoxFit.cover),
+                  )
+                else
+                  _buildInfoRow('Foto', widget.gado.foto ?? 'N/A', Icons.photo, Colors.teal),
+
+                const SizedBox(height: 12),
+                // Proprietário / Propriedade / Lote
+                Builder(builder: (context) {
+                  String ownerName = 'N/A';
+                  String propriedadeName = 'N/A';
+                  String loteName = 'N/A';
+                  if (widget.gado.ownerId != null) {
+                    final oi = proprietarios.indexWhere((p) => p.id == widget.gado.ownerId);
+                    if (oi != -1) ownerName = proprietarios[oi].nome;
+                    if (widget.gado.propriedadeId != null && oi != -1) {
+                      final pi = proprietarios[oi].propriedades.indexWhere((pr) => pr.id == widget.gado.propriedadeId);
+                      if (pi != -1) propriedadeName = proprietarios[oi].propriedades[pi].nome;
+                      if (widget.gado.loteId != null && pi != -1) {
+                        final li = proprietarios[oi].propriedades[pi].lotes.indexWhere((l) => l.id == widget.gado.loteId);
+                        if (li != -1) loteName = proprietarios[oi].propriedades[pi].lotes[li].nome;
+                      }
+                    }
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow('Proprietário', ownerName, Icons.person, Colors.green),
+                      _buildInfoRow('Propriedade', propriedadeName, Icons.house, Colors.brown),
+                      _buildInfoRow('Lote', loteName, Icons.layers, Colors.indigo),
+                    ],
+                  );
+                }),
                 
                 const SizedBox(height: 30),
                 

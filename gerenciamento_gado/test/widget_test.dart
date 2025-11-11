@@ -5,26 +5,27 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:gerenciamento_gado/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App mostra Login e navega para Cadastro', (WidgetTester tester) async {
+    // Inicializa o app real
+    await tester.pumpWidget(const GerenciamentoGadoApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Aguarda frames iniciais
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verifica se a tela de Login está sendo exibida
+    expect(find.text('Login'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Toca no botão 'Criar conta' para navegar para a página de cadastro
+    expect(find.text('Criar conta'), findsOneWidget);
+    await tester.tap(find.text('Criar conta'));
+    await tester.pumpAndSettle();
+
+    // Após navegação, deve mostrar a tela de Cadastro
+    expect(find.text('Cadastro'), findsOneWidget);
   });
 }
