@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-// ========================= DADOS GLOBAIS (SIMULAÇÃO DE BANCO DE DADOS) =========================
-// Lista global para armazenar os gados cadastrados dinamicamente.
+// ========================= DADOS GLOBAIS =========================
 List<Gado> gadosCadastrados = [];
 
-// NOVA LISTA GLOBAL DE OPÇÕES DE VACINAS
 const List<String> listaOpcoesVacinas = [
   'Febre Aftosa',
   'Brucelose',
@@ -19,12 +17,12 @@ void main() {
   runApp(const GerenciamentoGadoApp());
 }
 
-// ========================= MODELO DE DADOS (MUTÁVEL PARA EDIÇÃO) =========================
+// ========================= MODELO DE DADOS =========================
 class Gado {
   String nome;
   String idade;
   String peso;
-  String vacinas; // String contendo vacinas separadas por vírgula
+  String vacinas;
   String sexo;
 
   Gado({
@@ -36,16 +34,96 @@ class Gado {
   });
 }
 
+// ========================= NOVO WIDGET: PADRÃO DE FUNDO (GRÃO) =========================
+class CattleBackgroundPattern extends StatelessWidget {
+  const CattleBackgroundPattern({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: 0.03, // Opacidade super baixa (3%)
+      child: Container(
+        color: Colors.transparent, 
+        child: GridView.count(
+          crossAxisCount: 3, 
+          children: List.generate(9, (index) { 
+            return const Icon(
+              Icons.grain_rounded, // Ícone de Grão/Ração (Farm Theme)
+              size: 150, 
+              color: Color(0xFFBCAAA4), // Marrom suave
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
 class GerenciamentoGadoApp extends StatelessWidget {
   const GerenciamentoGadoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // === TEMA ESTILO "RURAL CLEAN" ===
     return MaterialApp(
-      title: 'Gerenciamento de Gado',
+      title: 'Projeto Gado',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
+        // Fundo Alterado: Bege claro (menos branco, mais quente)
+        scaffoldBackgroundColor: const Color(0xFFEFEBE9), 
+        
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF10B981), 
+          primary: const Color(0xFF10B981),
+          secondary: const Color(0xFF1F2937), 
+          surface: Colors.white,
+          background: const Color(0xFFEFEBE9),
+        ),
+
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent, 
+          foregroundColor: Color(0xFF1F2937), 
+          centerTitle: true,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          titleTextStyle: TextStyle(
+            color: Color(0xFF1F2937),
+            fontSize: 20, 
+            fontWeight: FontWeight.w800, 
+            letterSpacing: -0.5,
+          ),
+          iconTheme: IconThemeData(color: Color(0xFF1F2937)),
+        ),
+
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF10B981), 
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none, 
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.grey.shade200),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFF10B981), width: 2),
+          ),
+          prefixIconColor: Colors.grey,
+        ),
       ),
       home: const LoginPage(),
       debugShowCheckedModeBanner: false,
@@ -53,7 +131,7 @@ class GerenciamentoGadoApp extends StatelessWidget {
   }
 }
 
-// ========================= LOGIN PAGE =========================
+// ========================= LOGIN PAGE (COM TOURO/GADO) =========================
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -63,8 +141,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
 
   void _login() {
     if (_formKey.currentState!.validate()) {
@@ -75,169 +151,249 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _goToRegister() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const RegisterPage()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'E-mail'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o e-mail' : null,
+      backgroundColor: Colors.white,
+      body: Stack( 
+        children: [
+          const CattleBackgroundPattern(), // PADRÃO DE FUNDO
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Ícone de Gado (Touro)
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                        Icons.pets_rounded, // ÍCONE GADO
+                        size: 40, 
+                        color: Color(0xFF10B981)
+                      ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Projeto Gado',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 28, 
+                      fontWeight: FontWeight.w900, 
+                      color: Color(0xFF1F2937),
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Bem-vindo de volta',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                  ),
+                  const SizedBox(height: 40),
+
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'E-mail',
+                            prefixIcon: Icon(Icons.alternate_email_rounded),
+                          ),
+                          validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Senha',
+                            prefixIcon: Icon(Icons.lock_outline_rounded),
+                          ),
+                          validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _login,
+                    child: const Text('Entrar no Sistema'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () {
+                       Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage()));
+                    },
+                    child: const Text('Não tem conta? Cadastre-se', style: TextStyle(color: Colors.grey)),
+                  )
+                ],
               ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Senha'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe a senha' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('Entrar'),
-              ),
-              TextButton(
-                onPressed: _goToRegister,
-                child: const Text('Criar conta'),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-// ========================= CADASTRO DE USUÁRIO =========================
-class RegisterPage extends StatefulWidget {
+// ========================= CADASTRO USUÁRIO =========================
+class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
-}
-
-class _RegisterPageState extends State<RegisterPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  void _register() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
-      );
-      Navigator.pop(context);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cadastro')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o nome' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'E-mail'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o e-mail' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Senha'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe a senha' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _register,
+      appBar: AppBar(title: const Text('Criar Conta')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Nome', prefixIcon: Icon(Icons.person_outline)),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'E-mail', prefixIcon: Icon(Icons.email_outlined)),
+            ),
+             const SizedBox(height: 16),
+            TextFormField(
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Senha', prefixIcon: Icon(Icons.lock_outline)),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sucesso!')));
+                  Navigator.pop(context);
+                },
                 child: const Text('Cadastrar'),
               ),
-            ],
-          ),
+            )
+          ],
         ),
       ),
     );
   }
 }
 
-// ========================= DASHBOARD (PAINEL) =========================
+// ========================= DASHBOARD (COM TOURO/GADO) =========================
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
-  void _goToGadoList(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ListaGadoPage()),
-    );
-  }
-
-  void _goToGadoCadastro(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CadastrarGadoPage()),
+  Widget _buildMenuCard(BuildContext context, {
+    required String title, 
+    required IconData icon, 
+    required Color color,
+    required VoidCallback onTap
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            )
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 32, color: color),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16, 
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Acessar',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+            )
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Painel de Gado')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.dashboard, size: 80, color: Colors.green),
-            const SizedBox(height: 20),
-            const Text(
-              'Bem-vindo ao Painel!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      appBar: AppBar(
+        title: const Text('Projeto Gado'),
+        centerTitle: false, 
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none_rounded))
+        ],
+      ),
+      body: Stack( 
+        children: [
+          const CattleBackgroundPattern(), // PADRÃO DE FUNDO
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Visão Geral',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2, 
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                    childAspectRatio: 0.85, 
+                    children: [
+                      // ÍCONE GADO/TOURO AQUI
+                      _buildMenuCard(
+                        context,
+                        title: 'Cadastrar\nAnimal',
+                        icon: Icons.pets_rounded, // ÍCONE GADO
+                        color: const Color(0xFF10B981),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CadastrarGadoPage())),
+                      ),
+                      _buildMenuCard(
+                        context,
+                        title: 'Meu\nRebanho',
+                        icon: Icons.format_list_bulleted_rounded,
+                        color: const Color(0xFF3B82F6), 
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ListaGadoPage())),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const Text('Selecione uma opção abaixo:'),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: () => _goToGadoCadastro(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Cadastrar Novo Gado'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () => _goToGadoList(context),
-              icon: const Icon(Icons.list),
-              label: const Text('Ver Lista de Gados'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -253,69 +409,52 @@ class CadastrarGadoPage extends StatefulWidget {
 
 class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
   final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController _nomeController = TextEditingController();
-  final TextEditingController _idadeController = TextEditingController();
-  final TextEditingController _pesoController = TextEditingController();
-
+  final _nomeController = TextEditingController();
+  final _idadeController = TextEditingController();
+  final _pesoController = TextEditingController();
   String? _sexoSelecionado;
-  // NOVO: Armazena as vacinas selecionadas
   List<String> _vacinasSelecionadas = [];
 
-  // NOVO MÉTODO: Abre um diálogo para seleção múltipla de vacinas
   Future<void> _selecionarVacinas() async {
-    // Abre o diálogo e espera pelo resultado (lista de vacinas selecionadas)
-    final List<String>? resultado = await showDialog<List<String>>(
+    final List<String>? result = await showDialog(
       context: context,
-      builder: (context) => MultiSelectVacinasDialog(
-        todasVacinas: listaOpcoesVacinas,
-        vacinasAtuais: _vacinasSelecionadas,
-      ),
+      builder: (ctx) => MultiSelectVacinasDialog(todas: listaOpcoesVacinas, atuais: _vacinasSelecionadas),
     );
-
-    if (resultado != null) {
-      setState(() {
-        _vacinasSelecionadas = resultado;
-      });
-    }
+    if (result != null) setState(() => _vacinasSelecionadas = result);
   }
 
-  void _salvarCadastro() {
+  void _salvar() {
     if (_formKey.currentState!.validate()) {
-      final novoGado = Gado(
+      gadosCadastrados.add(Gado(
         nome: _nomeController.text,
         idade: _idadeController.text,
         peso: _pesoController.text,
-        // NOVO: Salva as vacinas como uma string formatada ou "N/A"
-        vacinas: _vacinasSelecionadas.isEmpty
-            ? 'N/A'
-            : _vacinasSelecionadas.join(', '), // Junta as vacinas com vírgula
+        vacinas: _vacinasSelecionadas.isEmpty ? 'N/A' : _vacinasSelecionadas.join(', '),
         sexo: _sexoSelecionado ?? 'Não informado',
-      );
-
-      gadosCadastrados.add(novoGado);
-
-      // Limpa os campos para novo cadastro
-      _nomeController.clear();
-      _idadeController.clear();
-      _pesoController.clear();
-      setState(() {
-        _sexoSelecionado = null;
-        _vacinasSelecionadas = []; // Limpa a seleção
-      });
-
+      ));
+      
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Cadastro realizado'),
-          content: Text('${novoGado.nome} foi adicionado à lista com sucesso!'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 60),
+                const SizedBox(height: 16),
+                const Text('Sucesso!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Animal registrado.'),
+                const SizedBox(height: 20),
+                ElevatedButton(onPressed: () {
+                   Navigator.pop(context); 
+                   Navigator.pop(context); 
+                }, child: const Text('OK'))
+              ],
             ),
-          ],
-        ),
+          ),
+        )
       );
     }
   }
@@ -323,90 +462,73 @@ class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cadastrar Gado')),
-      body: Padding(
+      appBar: AppBar(title: const Text('Novo Cadastro')),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
-              TextFormField(
-                controller: _nomeController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome do Gado',
-                  border: OutlineInputBorder(),
+              // Container Branco para o formulário
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0,4))]
                 ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o nome do gado' : null,
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _idadeController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Idade (em meses)',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe a idade' : null,
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _pesoController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Peso (em kg)',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o peso' : null,
-              ),
-              const SizedBox(height: 15),
-              
-              // NOVO CAMPO: Seleção Múltipla de Vacinas
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Vacinas Aplicadas',
-                  border: const OutlineInputBorder(),
-                  // Exibe a lista de vacinas selecionadas
-                  hintText: _vacinasSelecionadas.isEmpty
-                      ? 'Clique para selecionar as vacinas'
-                      : _vacinasSelecionadas.join(', '),
-                  suffixIcon: const Icon(Icons.vaccines),
-                ),
-                readOnly: true, // Torna o campo não editável
-                onTap: _selecionarVacinas, // Abre o diálogo ao tocar
-              ),
-              
-              const SizedBox(height: 15),
-              
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Sexo',
-                  border: OutlineInputBorder(),
-                ),
-                value: _sexoSelecionado,
-                items: const [
-                  DropdownMenuItem(value: 'Macho', child: Text('Macho')),
-                  DropdownMenuItem(value: 'Fêmea', child: Text('Fêmea')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _sexoSelecionado = value;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Selecione o sexo' : null,
-              ),
-              const SizedBox(height: 25),
-              ElevatedButton.icon(
-                onPressed: _salvarCadastro,
-                icon: const Icon(Icons.save),
-                label: const Text('Salvar Cadastro'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _nomeController,
+                      decoration: const InputDecoration(labelText: 'Identificação/Nome', prefixIcon: Icon(Icons.tag_rounded)),
+                      validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: TextFormField(
+                          controller: _idadeController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Idade (meses)', prefixIcon: Icon(Icons.calendar_month_rounded)),
+                          validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+                        )),
+                        const SizedBox(width: 16),
+                        Expanded(child: TextFormField(
+                          controller: _pesoController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Peso (kg)', prefixIcon: Icon(Icons.scale_rounded)),
+                          validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+                        )),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      readOnly: true,
+                      onTap: _selecionarVacinas,
+                      decoration: InputDecoration(
+                        labelText: 'Vacinas',
+                        prefixIcon: const Icon(Icons.medical_services_outlined),
+                        suffixIcon: const Icon(Icons.arrow_drop_down),
+                        hintText: _vacinasSelecionadas.isEmpty ? 'Selecione...' : '${_vacinasSelecionadas.length} item(s)',
+                      ),
+                    ),
+                     const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _sexoSelecionado,
+                      decoration: const InputDecoration(labelText: 'Sexo', prefixIcon: Icon(Icons.pets)),
+                      items: const [
+                        DropdownMenuItem(value: 'Macho', child: Text('Macho')),
+                        DropdownMenuItem(value: 'Fêmea', child: Text('Fêmea')),
+                      ],
+                      onChanged: (v) => setState(() => _sexoSelecionado = v),
+                      validator: (v) => v == null ? 'Obrigatório' : null,
+                    )
+                  ],
                 ),
               ),
+              const SizedBox(height: 24),
+              SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _salvar, child: const Text('SALVAR ANIMAL')))
             ],
           ),
         ),
@@ -415,88 +537,7 @@ class _CadastrarGadoPageState extends State<CadastrarGadoPage> {
   }
 }
 
-// ========================= NOVO WIDGET: DIÁLOGO DE SELEÇÃO MÚLTIPLA DE VACINAS =========================
-class MultiSelectVacinasDialog extends StatefulWidget {
-  final List<String> todasVacinas;
-  final List<String> vacinasAtuais;
-
-  const MultiSelectVacinasDialog({
-    super.key,
-    required this.todasVacinas,
-    required this.vacinasAtuais,
-  });
-
-  @override
-  State<MultiSelectVacinasDialog> createState() => _MultiSelectVacinasDialogState();
-}
-
-class _MultiSelectVacinasDialogState extends State<MultiSelectVacinasDialog> {
-  // Lista temporária para armazenar as seleções dentro do diálogo
-  late List<String> _vacinasSelecionadasTemp;
-
-  @override
-  void initState() {
-    super.initState();
-    // Inicializa a lista temporária com as vacinas que já estão selecionadas
-    _vacinasSelecionadasTemp = List.from(widget.vacinasAtuais);
-  }
-
-  void _itemChange(String item, bool isSelected) {
-    setState(() {
-      if (isSelected) {
-        _vacinasSelecionadasTemp.add(item);
-      } else {
-        _vacinasSelecionadasTemp.remove(item);
-      }
-    });
-  }
-
-  void _cancel() {
-    // Retorna null ou a lista original para indicar que nenhuma mudança foi aplicada
-    Navigator.pop(context, widget.vacinasAtuais); 
-  }
-
-  void _submit() {
-    // Retorna a lista atualizada
-    Navigator.pop(context, _vacinasSelecionadasTemp); 
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Selecione as Vacinas'),
-      content: SingleChildScrollView(
-        child: ListBody(
-          children: widget.todasVacinas
-              .map(
-                (vacina) => CheckboxListTile(
-                  value: _vacinasSelecionadasTemp.contains(vacina),
-                  title: Text(vacina),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  onChanged: (bool? isChecked) {
-                    _itemChange(vacina, isChecked!);
-                  },
-                ),
-              )
-              .toList(),
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: _cancel,
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          child: const Text('OK'),
-        ),
-      ],
-    );
-  }
-}
-
-
-// ========================= LISTA DE GADO (STATEFUL PARA REFRESH) =========================
+// ========================= LISTA DE GADO =========================
 class ListaGadoPage extends StatefulWidget {
   const ListaGadoPage({super.key});
 
@@ -505,443 +546,199 @@ class ListaGadoPage extends StatefulWidget {
 }
 
 class _ListaGadoPageState extends State<ListaGadoPage> {
-
-  // Função para recarregar a lista quando voltamos da edição/exclusão
-  void _refreshList() {
-    setState(() {
-      // Força a reconstrução da página com a lista atualizada
-    });
-  }
-
-  void _goToDetalhe(BuildContext context, Gado gado) async {
-    // A lista precisa ser atualizada ao voltar da DetalheGadoPage (após edição/exclusão)
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => DetalheGadoPage(gado: gado, onGadoChanged: _refreshList)),
-    );
-    _refreshList(); // Chamada para atualizar a lista ao voltar
-  }
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    if (gadosCadastrados.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Gado Cadastrado')),
-        body: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.warning_amber, size: 50, color: Colors.grey),
-              SizedBox(height: 10),
-              Text(
-                'Nenhum gado cadastrado ainda.',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: Text('Gado Cadastrado (${gadosCadastrados.length})')),
-      body: ListView.builder(
-        itemCount: gadosCadastrados.length,
-        itemBuilder: (context, index) {
-          final gado = gadosCadastrados[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: ListTile(
-              leading: Icon(
-                gado.sexo == 'Macho' ? Icons.male : Icons.female,
-                color: gado.sexo == 'Macho' ? Colors.blue : Colors.pink,
-                size: 40,
-              ),
-              title: Text(gado.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('Idade: ${gado.idade} meses | Peso: ${gado.peso} kg'),
-              trailing: Text(gado.sexo),
-              onTap: () => _goToDetalhe(context, gado),
-            ),
-          );
-        },
-      ),
+      appBar: AppBar(title: Text('Rebanho (${gadosCadastrados.length})')),
+      body: gadosCadastrados.isEmpty
+        ? Center(child: Text('Nenhum dado encontrado', style: TextStyle(color: Colors.grey.shade400)))
+        : ListView.separated(
+            padding: const EdgeInsets.all(20),
+            itemCount: gadosCadastrados.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final item = gadosCadastrados[index];
+              final isMacho = item.sexo == 'Macho';
+              return GestureDetector(
+                onTap: () async {
+                   await Navigator.push(context, MaterialPageRoute(builder: (context) => DetalheGadoPage(gado: item, onUpdate: _refresh)));
+                   _refresh();
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2))]
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 50, height: 50,
+                        decoration: BoxDecoration(
+                          color: isMacho ? Colors.blue.withOpacity(0.1) : Colors.pink.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(15)
+                        ),
+                        child: Icon(isMacho ? Icons.male : Icons.female, color: isMacho ? Colors.blue : Colors.pink),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.nome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1F2937))),
+                            const SizedBox(height: 4),
+                            Text('${item.peso}kg • ${item.idade} meses', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: Colors.grey)
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
     );
   }
 }
 
-// ========================= TELA DE EDIÇÃO DO GADO =========================
-class EditarGadoPage extends StatefulWidget {
-  final Gado gado;
-  final VoidCallback onGadoEdited; // Callback para notificar a DetalhePage
-
-  const EditarGadoPage({super.key, required this.gado, required this.onGadoEdited});
+// ========================= DIALOG MULTI SELECT (Auxiliar) =========================
+class MultiSelectVacinasDialog extends StatefulWidget {
+  final List<String> todas;
+  final List<String> atuais;
+  const MultiSelectVacinasDialog({super.key, required this.todas, required this.atuais});
 
   @override
-  State<EditarGadoPage> createState() => _EditarGadoPageState();
+  State<MultiSelectVacinasDialog> createState() => _MultiSelectState();
+}
+class _MultiSelectState extends State<MultiSelectVacinasDialog> {
+  late List<String> _temp;
+  @override
+  void initState() {
+    super.initState();
+    _temp = List.from(widget.atuais);
+  }
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Selecionar Vacinas'),
+      content: SingleChildScrollView(
+        child: Column(
+          children: widget.todas.map((v) => CheckboxListTile(
+            title: Text(v),
+            value: _temp.contains(v),
+            activeColor: const Color(0xFF10B981),
+            onChanged: (chk) => setState(() => chk! ? _temp.add(v) : _temp.remove(v)),
+          )).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
+        ElevatedButton(onPressed: () => Navigator.pop(context, _temp), child: const Text('Confirmar')),
+      ],
+    );
+  }
 }
 
-class _EditarGadoPageState extends State<EditarGadoPage> {
-  final _formKey = GlobalKey<FormState>();
+// ========================= DETALHES E EDIÇÃO =========================
+class DetalheGadoPage extends StatefulWidget {
+  final Gado gado;
+  final VoidCallback onUpdate;
+  const DetalheGadoPage({super.key, required this.gado, required this.onUpdate});
 
-  late TextEditingController _nomeController;
-  late TextEditingController _idadeController;
-  late TextEditingController _pesoController;
-  // REMOVIDO: late TextEditingController _vacinasController;
+  @override
+  State<DetalheGadoPage> createState() => _DetalheState();
+}
 
-  String? _sexoSelecionado;
-  // NOVO: Lista mutável para as vacinas na edição
-  late List<String> _vacinasSelecionadas; 
+class _DetalheState extends State<DetalheGadoPage> {
+  late TextEditingController _nomeCtrl;
+  late TextEditingController _idadeCtrl;
+  late TextEditingController _pesoCtrl;
+  bool _editando = false;
 
   @override
   void initState() {
     super.initState();
-    _nomeController = TextEditingController(text: widget.gado.nome);
-    _idadeController = TextEditingController(text: widget.gado.idade);
-    _pesoController = TextEditingController(text: widget.gado.peso);
-    _sexoSelecionado = widget.gado.sexo == 'Não informado' ? null : widget.gado.sexo;
-    
-    // NOVO: Inicializa a lista de vacinas, separando a string por vírgulas
-    _vacinasSelecionadas = widget.gado.vacinas == 'N/A'
-        ? []
-        : widget.gado.vacinas.split(', ').toList();
+    _nomeCtrl = TextEditingController(text: widget.gado.nome);
+    _idadeCtrl = TextEditingController(text: widget.gado.idade);
+    _pesoCtrl = TextEditingController(text: widget.gado.peso);
   }
 
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _idadeController.dispose();
-    _pesoController.dispose();
-    super.dispose();
-  }
-  
-  // NOVO MÉTODO: Abre um diálogo para seleção múltipla de vacinas
-  Future<void> _selecionarVacinas() async {
-    final List<String>? resultado = await showDialog<List<String>>(
-      context: context,
-      builder: (context) => MultiSelectVacinasDialog(
-        todasVacinas: listaOpcoesVacinas,
-        vacinasAtuais: _vacinasSelecionadas,
-      ),
-    );
-
-    if (resultado != null) {
-      setState(() {
-        _vacinasSelecionadas = resultado;
-      });
-    }
+  void _salvar() {
+    widget.gado.nome = _nomeCtrl.text;
+    widget.gado.idade = _idadeCtrl.text;
+    widget.gado.peso = _pesoCtrl.text;
+    widget.onUpdate();
+    setState(() => _editando = false);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Atualizado!')));
   }
 
-
-  void _salvarEdicao() {
-    if (_formKey.currentState!.validate()) {
-      // 1. Atualiza o objeto Gado original
-      widget.gado.nome = _nomeController.text;
-      widget.gado.idade = _idadeController.text;
-      widget.gado.peso = _pesoController.text;
-      // NOVO: Atualiza a string de vacinas
-      widget.gado.vacinas = _vacinasSelecionadas.isEmpty
-          ? 'N/A'
-          : _vacinasSelecionadas.join(', ');
-      widget.gado.sexo = _sexoSelecionado ?? 'Não informado';
-
-      // 2. Chama o callback para notificar a tela de detalhes
-      widget.onGadoEdited();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${widget.gado.nome} atualizado com sucesso!')),
-      );
-
-      // Volta para a tela de detalhes
-      Navigator.pop(context);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Editar ${widget.gado.nome}')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _nomeController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome do Gado',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o nome do gado' : null,
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _idadeController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Idade (em meses)',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe a idade' : null,
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _pesoController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Peso (em kg)',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o peso' : null,
-              ),
-              const SizedBox(height: 15),
-              
-              // NOVO CAMPO: Seleção Múltipla de Vacinas
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Vacinas Aplicadas',
-                  border: const OutlineInputBorder(),
-                  // Exibe a lista de vacinas selecionadas
-                  hintText: _vacinasSelecionadas.isEmpty
-                      ? 'Clique para selecionar as vacinas'
-                      : _vacinasSelecionadas.join(', '),
-                  suffixIcon: const Icon(Icons.vaccines),
-                ),
-                readOnly: true, // Torna o campo não editável
-                onTap: _selecionarVacinas, // Abre o diálogo ao tocar
-              ),
-              
-              const SizedBox(height: 15),
-              
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Sexo',
-                  border: OutlineInputBorder(),
-                ),
-                value: _sexoSelecionado,
-                items: const [
-                  DropdownMenuItem(value: 'Macho', child: Text('Macho')),
-                  DropdownMenuItem(value: 'Fêmea', child: Text('Fêmea')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _sexoSelecionado = value;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Selecione o sexo' : null,
-              ),
-              const SizedBox(height: 25),
-              ElevatedButton.icon(
-                onPressed: _salvarEdicao,
-                icon: const Icon(Icons.edit),
-                label: const Text('Salvar Edição'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ========================= DETALHES DO GADO (COM EDIÇÃO E EXCLUSÃO) =========================
-class DetalheGadoPage extends StatefulWidget {
-  final Gado gado;
-  // Callback para notificar a ListaGadoPage sobre a mudança/exclusão
-  final VoidCallback onGadoChanged; 
-
-  const DetalheGadoPage({super.key, required this.gado, required this.onGadoChanged});
-
-  @override
-  State<DetalheGadoPage> createState() => _DetalheGadoPageState();
-}
-
-class _DetalheGadoPageState extends State<DetalheGadoPage> {
-
-  // Reconstroi a UI quando o gado for editado (chamado pelo callback da EditarGadoPage)
-  void _refreshDetails() {
-    setState(() {
-      // Força a reconstrução do widget com os dados atualizados
-    });
-    // Notifica a lista principal
-    widget.onGadoChanged();
-  }
-
-  void _goToEdit(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditarGadoPage(gado: widget.gado, onGadoEdited: _refreshDetails)),
-    );
-  }
-
-  void _confirmDelete() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text('Tem certeza que deseja remover ${widget.gado.nome} da lista?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // 1. Remove da lista global
-              gadosCadastrados.remove(widget.gado);
-
-              // 2. Notifica a ListaGadoPage e volta para ela
-              widget.onGadoChanged();
-              Navigator.of(context).pop(); // Fecha o AlertDialog
-              Navigator.of(context).pop(); // Volta para a ListaGadoPage
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${widget.gado.nome} foi removido com sucesso!')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Excluir', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  void _excluir() {
+    gadosCadastrados.remove(widget.gado);
+    widget.onUpdate();
+    Navigator.pop(context);
+    Navigator.pop(context); 
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.gado.nome),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
+        title: Text(_editando ? 'Editando' : 'Detalhes'),
+        actions: [
+          IconButton(
+            icon: Icon(_editando ? Icons.save : Icons.edit),
+            onPressed: () {
+              if (_editando) _salvar();
+              else setState(() => _editando = true);
+            },
+          )
+        ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Center(
-                  child: Icon(
-                    widget.gado.sexo == 'Macho' ? Icons.pets : Icons.favorite_border,
-                    color: widget.gado.sexo == 'Macho' ? Colors.blue : Colors.pink,
-                    size: 80,
-                  ),
-                ),
-                const Divider(height: 30, thickness: 1),
-                
-                // Exibindo as informações
-                _buildInfoRow(
-                  'Nome',
-                  widget.gado.nome,
-                  Icons.label_important,
-                  Colors.green,
-                ),
-                _buildInfoRow(
-                  'Idade',
-                  '${widget.gado.idade} meses',
-                  Icons.cake,
-                  Colors.orange,
-                ),
-                _buildInfoRow(
-                  'Peso',
-                  '${widget.gado.peso} kg',
-                  Icons.line_weight,
-                  Colors.brown,
-                ),
-                _buildInfoRow(
-                  'Sexo',
-                  widget.gado.sexo,
-                  widget.gado.sexo == 'Macho' ? Icons.male : Icons.female,
-                  widget.gado.sexo == 'Macho' ? Colors.blue : Colors.pink,
-                ),
-                _buildInfoRow(
-                  'Vacinas',
-                  widget.gado.vacinas,
-                  Icons.local_hospital,
-                  Colors.red,
-                ),
-                
-                const SizedBox(height: 30),
-                
-                // Botões de Ação
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        // Chamada corrigida:
-                        onPressed: () => _goToEdit(context),
-                        icon: const Icon(Icons.edit, color: Colors.white),
-                        label: const Text('Editar', style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _confirmDelete,
-                        icon: const Icon(Icons.delete, color: Colors.white),
-                        label: const Text('Excluir', style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.grey.shade200,
+              child: Icon(Icons.pets, size: 50, color: Colors.grey.shade400),
             ),
-          ),
+            const SizedBox(height: 30),
+
+            _campo('Nome', _nomeCtrl, Icons.tag),
+            const SizedBox(height: 16),
+            _campo('Idade (meses)', _idadeCtrl, Icons.calendar_today),
+            const SizedBox(height: 16),
+            _campo('Peso (kg)', _pesoCtrl, Icons.scale),
+            
+            const SizedBox(height: 40),
+            if (_editando)
+              SizedBox(
+                width: double.infinity, 
+                child: ElevatedButton(
+                  onPressed: _excluir, 
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade100, foregroundColor: Colors.red),
+                  child: const Text('Excluir Animal'),
+                )
+              )
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _campo(String label, TextEditingController ctrl, IconData icon) {
+    return TextFormField(
+      controller: ctrl,
+      enabled: _editando,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        fillColor: _editando ? Colors.white : Colors.transparent,
       ),
     );
   }
