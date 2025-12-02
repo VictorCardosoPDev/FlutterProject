@@ -166,33 +166,36 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Ícone de Gado (Touro)
-                  Container(
-                    width: 80,
-                    height: 80,
+                 Container(
+                    width: 300,
+                    height: 300,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.1),
                       shape: BoxShape.circle,
+                      color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
                     ),
-                    child: const Icon(
-                        Icons.pets_rounded, // ÍCONE GADO
-                        size: 40, 
-                        color: Color(0xFF10B981)
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Image.asset(
+                        'assets/agro tracking main.png',
+                        fit: BoxFit.contain,
                       ),
+                    ),
                   ),
+
                   const SizedBox(height: 24),
                   const Text(
-                    'Projeto Gado',
+                    'Agro Tracking',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 28, 
-                      fontWeight: FontWeight.w900, 
-                      color: Color(0xFF1F2937),
-                      letterSpacing: -1,
+                      fontSize: 30, 
+                      fontWeight: FontWeight.bold, 
+                      color: Color(0xFF111827),
+                      letterSpacing: 5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Bem-vindo de volta',
+                    'Bem-vindo',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
                   ),
